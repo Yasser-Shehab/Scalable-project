@@ -1,9 +1,8 @@
 # Scalable & Highly Available Web Application on AWS
 
-**Author:** `<your name>`  
+**Author:** `Yasser Shehab El Dean`  
 **Program:** AWS Solutions Architect – Associate graduation project (Manara)  
-**Project idea:** Scalable Web Application with ALB and Auto Scaling (EC2-based)  
-**Live demo / video:** `<add your URL or video link here, or delete this line>`
+**Project idea:** Scalable Web Application with ALB and Auto Scaling (EC2-based)
 
 ---
 
@@ -15,13 +14,13 @@ Requests enter through **CloudFront** and reach an internet-facing **Application
 
 ### Design goals
 
-| Goal | How it is met |
-|---|---|
-| High availability | Two AZs, ALB health checks, ASG self-healing, RDS Multi-AZ, one NAT Gateway per AZ |
-| Scalability | Auto Scaling with a target tracking policy, CloudFront caching for static content |
-| Security | Private subnets, layered security groups, NACLs, WAF, no SSH, encrypted storage |
-| Operational visibility | CloudWatch dashboard and alarms, SNS email notifications, Route 53 health check |
-| Low latency | CloudFront edge caching in front of the ALB |
+| Goal                   | How it is met                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| High availability      | Two AZs, ALB health checks, ASG self-healing, RDS Multi-AZ, one NAT Gateway per AZ |
+| Scalability            | Auto Scaling with a target tracking policy, CloudFront caching for static content  |
+| Security               | Private subnets, layered security groups, NACLs, WAF, no SSH, encrypted storage    |
+| Operational visibility | CloudWatch dashboard and alarms, SNS email notifications, Route 53 health check    |
+| Low latency            | CloudFront edge caching in front of the ALB                                        |
 
 ---
 
@@ -42,18 +41,18 @@ Requests enter through **CloudFront** and reach an internet-facing **Application
 
 ## 3. Components
 
-| Layer | Service | Configuration |
-|---|---|---|
-| DNS | Route 53 | Alias record to CloudFront; health check on the public endpoint |
-| Edge | CloudFront | Origin is the ALB; HTTPS only; cache behavior for static paths (e.g. `/static/*`) |
-| Edge security | AWS WAF | Web ACL on the ALB with the AWS managed core rule set and a rate-based rule |
-| Load balancing | Application Load Balancer | Internet-facing, in both public subnets, HTTP/HTTPS listeners, health check on `/` |
-| Compute | EC2 + Auto Scaling Group | Launch Template, both private app subnets, min 2 / desired 2 / max 6, ELB health checks |
-| Database | RDS (MySQL or PostgreSQL) | Multi-AZ instance deployment, encrypted at rest, in private data subnets |
-| Egress | NAT Gateway (x2) | One per AZ, each with its own Elastic IP |
-| Access | Systems Manager Session Manager | Instance profile with `AmazonSSMManagedInstanceCore` |
-| Monitoring | CloudWatch | Dashboard plus alarms |
-| Notifications | SNS | Topic with an email subscription for the operations team |
+| Layer          | Service                         | Configuration                                                                           |
+| -------------- | ------------------------------- | --------------------------------------------------------------------------------------- |
+| DNS            | Route 53                        | Alias record to CloudFront; health check on the public endpoint                         |
+| Edge           | CloudFront                      | Origin is the ALB; HTTPS only; cache behavior for static paths (e.g. `/static/*`)       |
+| Edge security  | AWS WAF                         | Web ACL on the ALB with the AWS managed core rule set and a rate-based rule             |
+| Load balancing | Application Load Balancer       | Internet-facing, in both public subnets, HTTP/HTTPS listeners, health check on `/`      |
+| Compute        | EC2 + Auto Scaling Group        | Launch Template, both private app subnets, min 2 / desired 2 / max 6, ELB health checks |
+| Database       | RDS (MySQL or PostgreSQL)       | Multi-AZ instance deployment, encrypted at rest, in private data subnets                |
+| Egress         | NAT Gateway (x2)                | One per AZ, each with its own Elastic IP                                                |
+| Access         | Systems Manager Session Manager | Instance profile with `AmazonSSMManagedInstanceCore`                                    |
+| Monitoring     | CloudWatch                      | Dashboard plus alarms                                                                   |
+| Notifications  | SNS                             | Topic with an email subscription for the operations team                                |
 
 ---
 
@@ -61,20 +60,20 @@ Requests enter through **CloudFront** and reach an internet-facing **Application
 
 **VPC:** `10.0.0.0/16`, spanning two AZs. The CIDR ranges below are examples.
 
-| Tier | AZ A | AZ B | Contains |
-|---|---|---|---|
-| Public | `10.0.1.0/24` | `10.0.2.0/24` | ALB, NAT Gateways |
-| Private app | `10.0.11.0/24` | `10.0.12.0/24` | EC2 instances (ASG) |
+| Tier         | AZ A           | AZ B           | Contains                |
+| ------------ | -------------- | -------------- | ----------------------- |
+| Public       | `10.0.1.0/24`  | `10.0.2.0/24`  | ALB, NAT Gateways       |
+| Private app  | `10.0.11.0/24` | `10.0.12.0/24` | EC2 instances (ASG)     |
 | Private data | `10.0.21.0/24` | `10.0.22.0/24` | RDS primary and standby |
 
 ### Route tables
 
-| Route table | Routes |
-|---|---|
-| Public (shared by both public subnets) | `10.0.0.0/16` local, `0.0.0.0/0` to Internet Gateway |
-| Private app A | `10.0.0.0/16` local, `0.0.0.0/0` to NAT Gateway in AZ A |
-| Private app B | `10.0.0.0/16` local, `0.0.0.0/0` to NAT Gateway in AZ B |
-| Private data | `10.0.0.0/16` local only (no internet route) |
+| Route table                            | Routes                                                  |
+| -------------------------------------- | ------------------------------------------------------- |
+| Public (shared by both public subnets) | `10.0.0.0/16` local, `0.0.0.0/0` to Internet Gateway    |
+| Private app A                          | `10.0.0.0/16` local, `0.0.0.0/0` to NAT Gateway in AZ A |
+| Private app B                          | `10.0.0.0/16` local, `0.0.0.0/0` to NAT Gateway in AZ B |
+| Private data                           | `10.0.0.0/16` local only (no internet route)            |
 
 Each private app subnet uses the NAT Gateway in its own AZ. If one AZ fails, the other AZ's outbound path is not affected, and there is no cross-AZ NAT dependency.
 
@@ -84,11 +83,11 @@ Each private app subnet uses the NAT Gateway in its own AZ. If one AZ fails, the
 
 ### Security groups (stateful, the primary control)
 
-| Security group | Inbound | Source |
-|---|---|---|
-| `alb-sg` | TCP 80/443 | CloudFront origin-facing managed prefix list |
-| `web-sg` (EC2) | TCP 80 (app port) | `alb-sg` only |
-| `db-sg` (RDS) | TCP 3306 (MySQL) or 5432 (PostgreSQL) | `web-sg` only |
+| Security group | Inbound                               | Source                                       |
+| -------------- | ------------------------------------- | -------------------------------------------- |
+| `alb-sg`       | TCP 80/443                            | CloudFront origin-facing managed prefix list |
+| `web-sg` (EC2) | TCP 80 (app port)                     | `alb-sg` only                                |
+| `db-sg` (RDS)  | TCP 3306 (MySQL) or 5432 (PostgreSQL) | `web-sg` only                                |
 
 Restricting the ALB to the CloudFront prefix list means users cannot bypass CloudFront and WAF by hitting the ALB directly.
 
@@ -96,11 +95,11 @@ Restricting the ALB to the CloudFront prefix list means users cannot bypass Clou
 
 NACLs are stateless, so return traffic on ephemeral ports (1024–65535) must be allowed explicitly.
 
-| Subnet tier | Inbound | Outbound |
-|---|---|---|
-| Public | 80/443 from the internet; ephemeral from the internet | 80 to private app subnets; 80/443 and ephemeral to the internet |
-| Private app | 80 from public subnets; ephemeral from the internet (NAT return traffic) | DB port to data subnets; 443 to the internet; ephemeral to public subnets |
-| Private data | DB port from private app subnets | Ephemeral to private app subnets |
+| Subnet tier  | Inbound                                                                  | Outbound                                                                  |
+| ------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Public       | 80/443 from the internet; ephemeral from the internet                    | 80 to private app subnets; 80/443 and ephemeral to the internet           |
+| Private app  | 80 from public subnets; ephemeral from the internet (NAT return traffic) | DB port to data subnets; 443 to the internet; ephemeral to public subnets |
+| Private data | DB port from private app subnets                                         | Ephemeral to private app subnets                                          |
 
 ### Other controls
 
@@ -118,14 +117,14 @@ NACLs are stateless, so return traffic on ephemeral ports (1024–65535) must be
 
 ### Failure scenarios
 
-| Failure | What happens |
-|---|---|
-| An EC2 instance crashes or fails health checks | The ALB stops routing to it and the ASG replaces it |
-| A whole AZ becomes unavailable | The ALB keeps sending traffic to the healthy AZ, the ASG launches replacements there, and RDS fails over to the standby (typically 1–2 minutes) |
-| The RDS primary fails | RDS promotes the standby and updates the DNS endpoint automatically; the application reconnects |
-| A NAT Gateway fails | Only outbound traffic from that AZ is affected; the other AZ is unchanged |
-| Traffic spike | Target tracking adds instances up to the maximum, and CloudFront absorbs repeat requests for static content |
-| Common web attacks or request floods | WAF rules block or rate limit them before they reach the instances |
+| Failure                                        | What happens                                                                                                                                    |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| An EC2 instance crashes or fails health checks | The ALB stops routing to it and the ASG replaces it                                                                                             |
+| A whole AZ becomes unavailable                 | The ALB keeps sending traffic to the healthy AZ, the ASG launches replacements there, and RDS fails over to the standby (typically 1–2 minutes) |
+| The RDS primary fails                          | RDS promotes the standby and updates the DNS endpoint automatically; the application reconnects                                                 |
+| A NAT Gateway fails                            | Only outbound traffic from that AZ is affected; the other AZ is unchanged                                                                       |
+| Traffic spike                                  | Target tracking adds instances up to the maximum, and CloudFront absorbs repeat requests for static content                                     |
+| Common web attacks or request floods           | WAF rules block or rate limit them before they reach the instances                                                                              |
 
 ### Auto Scaling
 
@@ -141,14 +140,14 @@ RDS keeps a standby in a second AZ and replicates to it **synchronously**, so co
 
 ## 7. Monitoring and alerts
 
-| Alarm | Metric | Threshold (example) |
-|---|---|---|
-| High CPU on web tier | `CPUUtilization` (ASG average) | > 80% for 5 minutes |
-| Unhealthy targets | `UnHealthyHostCount` (ALB target group) | >= 1 for 2 minutes |
-| Server errors | `HTTPCode_Target_5XX_Count` / `HTTPCode_ELB_5XX_Count` | above a small baseline |
-| Database storage | `FreeStorageSpace` (RDS) | below 20% of allocated storage |
-| Database CPU | `CPUUtilization` (RDS) | > 80% for 5 minutes |
-| Endpoint down | Route 53 health check status | unhealthy |
+| Alarm                | Metric                                                 | Threshold (example)            |
+| -------------------- | ------------------------------------------------------ | ------------------------------ |
+| High CPU on web tier | `CPUUtilization` (ASG average)                         | > 80% for 5 minutes            |
+| Unhealthy targets    | `UnHealthyHostCount` (ALB target group)                | >= 1 for 2 minutes             |
+| Server errors        | `HTTPCode_Target_5XX_Count` / `HTTPCode_ELB_5XX_Count` | above a small baseline         |
+| Database storage     | `FreeStorageSpace` (RDS)                               | below 20% of allocated storage |
+| Database CPU         | `CPUUtilization` (RDS)                                 | > 80% for 5 minutes            |
+| Endpoint down        | Route 53 health check status                           | unhealthy                      |
 
 All alarms publish to one SNS topic with an email subscription. The subscription must be confirmed from the email that SNS sends. Route 53 health check metrics are published in `us-east-1`, so create that alarm (and an SNS topic) there.
 
@@ -200,40 +199,40 @@ EOF
 
 Add a screenshot or short note for each test in `screenshots/`.
 
-| Test | How | Expected result |
-|---|---|---|
-| Load balancing | Refresh the site repeatedly | Instance ID and AZ alternate |
-| Self-healing | Terminate one instance | ASG launches a replacement; site stays up |
-| Scale out | Run `stress-ng --cpu 0 --timeout 600` on an instance through Session Manager, or generate load with a tool such as `hey` | CPU alarm fires; ASG adds instances |
-| Database failover | RDS action **Reboot with failover** | Standby is promoted; the site recovers after a short interruption |
-| No direct ALB access | Request the ALB DNS name directly | Request is blocked (only CloudFront is allowed) |
-| WAF | Send a simple SQL injection style query string | Request is blocked with a 403 |
-| Alerting | Trigger an alarm | Email arrives from SNS |
+| Test                 | How                                                                                                                      | Expected result                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Load balancing       | Refresh the site repeatedly                                                                                              | Instance ID and AZ alternate                                      |
+| Self-healing         | Terminate one instance                                                                                                   | ASG launches a replacement; site stays up                         |
+| Scale out            | Run `stress-ng --cpu 0 --timeout 600` on an instance through Session Manager, or generate load with a tool such as `hey` | CPU alarm fires; ASG adds instances                               |
+| Database failover    | RDS action **Reboot with failover**                                                                                      | Standby is promoted; the site recovers after a short interruption |
+| No direct ALB access | Request the ALB DNS name directly                                                                                        | Request is blocked (only CloudFront is allowed)                   |
+| WAF                  | Send a simple SQL injection style query string                                                                           | Request is blocked with a 403                                     |
+| Alerting             | Trigger an alarm                                                                                                         | Email arrives from SNS                                            |
 
 ---
 
 ## 10. Design decisions and trade-offs
 
-| Decision | Reason | Trade-off |
-|---|---|---|
-| EC2 in private subnets behind NAT | Instances are not reachable from the internet | NAT Gateways add hourly and data processing cost |
-| One NAT Gateway per AZ | No cross-AZ dependency for outbound traffic | Roughly double the NAT cost of a single shared NAT |
+| Decision                             | Reason                                                | Trade-off                                                |
+| ------------------------------------ | ----------------------------------------------------- | -------------------------------------------------------- |
+| EC2 in private subnets behind NAT    | Instances are not reachable from the internet         | NAT Gateways add hourly and data processing cost         |
+| One NAT Gateway per AZ               | No cross-AZ dependency for outbound traffic           | Roughly double the NAT cost of a single shared NAT       |
 | Session Manager instead of a bastion | No open SSH port, no key management, full audit trail | Needs the SSM agent and outbound access to SSM endpoints |
-| Target tracking scaling | Simple and self-adjusting | Less control than step scaling for unusual load patterns |
-| Multi-AZ RDS (not read replicas) | Solves availability, which is the goal | Does not add read capacity |
-| ALB restricted to CloudFront | Forces traffic through the edge and WAF | Direct ALB testing needs a temporary rule |
+| Target tracking scaling              | Simple and self-adjusting                             | Less control than step scaling for unusual load patterns |
+| Multi-AZ RDS (not read replicas)     | Solves availability, which is the goal                | Does not add read capacity                               |
+| ALB restricted to CloudFront         | Forces traffic through the edge and WAF               | Direct ALB testing needs a temporary rule                |
 
 ---
 
 ## 11. Well-Architected alignment
 
-| Pillar | How the design addresses it |
-|---|---|
-| Reliability | Multi-AZ everywhere, health checks, automatic recovery, no single points of failure |
-| Security | Private subnets, layered controls, WAF, no SSH, encryption |
-| Performance efficiency | Auto Scaling, CloudFront caching |
-| Cost optimization | Elastic capacity, minimum instance count of 2, cleanup after demos |
-| Operational excellence | Dashboards, alarms, notifications, repeatable Launch Template |
+| Pillar                 | How the design addresses it                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| Reliability            | Multi-AZ everywhere, health checks, automatic recovery, no single points of failure |
+| Security               | Private subnets, layered controls, WAF, no SSH, encryption                          |
+| Performance efficiency | Auto Scaling, CloudFront caching                                                    |
+| Cost optimization      | Elastic capacity, minimum instance count of 2, cleanup after demos                  |
+| Operational excellence | Dashboards, alarms, notifications, repeatable Launch Template                       |
 
 ---
 
